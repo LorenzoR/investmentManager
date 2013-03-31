@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:context="http://www.springframework.org/schema/context" xmlns:tx="http://www.springframework.org/schema/tx"
+
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+          http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.1.xsd
+          http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.1.xsd
+          http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.1.xsd
+">
+
+	<context:annotation-config />
+
+	<bean id="AbstractHibernateDAO" abstract="true"
+		class="org.investmentManager.persistence.hibernate.AbstractHibernateDAO" />
+
+	<!-- Services Beans -->
+	<bean id="stockService" class="org.investmentManager.service.impl.StockServiceImpl">
+		<property name="itemDao" ref="stockDao" />
+	</bean>
+
+	<!-- DAOs -->
+	<bean id="stockDao"
+		class="org.investmentManager.persistence.hibernate.StockDaoImpl"
+		parent="AbstractHibernateDAO">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+
+	<bean id="sessionFactory"
+		class="org.springframework.orm.hibernate4.LocalSessionFactoryBean"
+		autowire="autodetect">
+		<property name="dataSource" ref="dataSource" />
+
+		<property name="annotatedClasses">
+			<list>
+				<value>org.investmentManager.model.Account</value>
+				<value>org.investmentManager.model.Investment</value>
+				<value>org.investmentManager.model.Bond</value>
+				<value>org.investmentManager.model.Fund</value>
+				<value>org.investmentManager.model.Stock</value>
+			</list>
+		</property>
+
+		<property name="hibernateProperties">
+			<props>
+				<!-- VER VALIDATION.MODE -->
+				<prop key="javax.persistence.validation.mode">none</prop>
+				<prop key="hibernate.dialect">org.hibernate.dialect.MySQL5InnoDBDialect</prop>
+				<prop key="hibernate.format_sql">true</prop>
+				<prop key="hibernate.show_sql">true</prop>
+				<prop key="hibernate.use_outer_join">true</prop>
+
+				<!-- <prop key="hibernate.cache.use_second_level_cache">true</prop> -->
+				<!-- <prop key="hibernate.cache.use_query_cache">true</prop> -->
+				<!-- <prop key="hibernate.cache.provider_class">org.hibernate.cache.HashtableCacheProvider</prop> -->
+
+				<prop key="hibernate.connection.pool_size">10</prop>
+				<prop key="hibernate.jdbc.batch_size">1000</prop>
+				<prop key="hibernate.bytecode.use_reflection_optimizer">true</prop>
+				<prop key="hibernate.hbm2ddl.auto">update</prop>
+
+			</props>
+		</property>
+	</bean>
+	<bean id="dataSource"
+		class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="com.mysql.jdbc.Driver" />
+		<property name="url" value="jdbc:mysql://localhost/stocksManager" />
+		<property name="username" value="root" />
+		<property name="password" value="wz25pc82" />
+	</bean>
+
+	<bean id="txManager"
+		class="org.springframework.orm.hibernate4.HibernateTransactionManager">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+	<tx:annotation-driven transaction-manager="txManager" />
+</beans>
